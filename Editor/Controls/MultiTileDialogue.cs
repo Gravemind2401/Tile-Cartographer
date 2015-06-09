@@ -28,14 +28,14 @@ namespace TileCartographer.Controls
         /// <returns>The reference tile index selected by the user.</returns>
         public byte ShowDialog(IWin32Window owner, TCProject tProj, int index)
         {
-            referenceTilePicker1.LoadRefSheet(tProj, index);
+            ReferenceTilePicker.LoadRefSheet(tProj, index);
 
             base.ShowDialog(owner);
 
             return forceIndex;
         }
 
-        private void referenceTilePicker1_IndexChanged(object sender, byte index)
+        private void ReferenceTilePicker_IndexChanged(object sender, byte index)
         {
             //once the user has selected a tile, update
             //the index value and close the form. If the

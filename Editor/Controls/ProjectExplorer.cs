@@ -15,6 +15,7 @@ namespace TileCartographer.Controls
         private TCProject cProj;
         private TCMap cMap;
 
+        #region Methods
         public ProjectExplorer()
         {
             InitializeComponent();
@@ -31,6 +32,7 @@ namespace TileCartographer.Controls
             BuildProjectTree();
             tvExplorer.SelectedNode = tvExplorer.Nodes[0];
             pgItemProperties.SelectedObject = cProj;
+            this.ContextMenuStrip = contextMenuStrip1;
             if (New) tvExplorer.SelectedNode.BeginEdit();
         }
 
@@ -41,6 +43,7 @@ namespace TileCartographer.Controls
         {
             tvExplorer.Nodes.Clear();
             pgItemProperties.SelectedObject = null;
+            this.ContextMenuStrip = null;
             cProj = null;
         }
 
@@ -136,11 +139,13 @@ namespace TileCartographer.Controls
             if (root.Tag is TCMap) 
                 cProj.MapList.Remove((TCMap)root.Tag);
         }
+        #endregion
 
         #region Event Handlers
         private void tvExplorer_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
         {
             tvExplorer.SelectedNode = e.Node;
+            this.ContextMenuStrip = (e.Node == null) ? null : contextMenuStrip1;
         }
 
         private void tvExplorer_AfterSelect(object sender, TreeViewEventArgs e)

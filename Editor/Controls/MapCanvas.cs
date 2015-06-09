@@ -16,14 +16,16 @@ namespace TileCartographer.Controls
     {
         #region Declarations
         private MouseButtons cButton; //which mouse button was clicked
-        private Image[] layerImgs; //each layer as an image, including collision
-        private Image Lower, Upper; //used for quicker redrawing. see Redraw() method.
+        private Image[] layerImgs;    //these 5 images are used as a cache to speed up rendering
+        private Image Lower, Upper;   //each redraw we only work with a small area of one image
 
-        private BytePoint2D[,] currentLayer //shortcut to get current layer rather than using a method
-        { get { return tMap.Layers[(int)LayerMode]; } set { tMap.Layers[(int)LayerMode] = value; } }
+        private BytePoint2D[,] currentLayer 
+        { get { return tMap.Layers[(int)LayerMode]; } set { tMap.Layers[(int)LayerMode] = value; } } //shortcut to get current layer rather than using a method
 
         private Image Tileset;
 
+        //queues individual tiles for redraw instead
+        //of redrawing the entire map after an edit
         private Queue<KeyValuePair<int, BytePoint2D>> updateQueue;
         private Stack<TCMap> undoQueue;
         private Stack<TCMap> redoQueue;
@@ -46,7 +48,7 @@ namespace TileCartographer.Controls
         private bool unDimOnExit;
 
         public LayerPaintMode PaintMode
-        { get { return lmp; } set { lmp = value; selRect = Rectangle.Empty; Redraw(); } }
+        { get { return lmp; } set { lmp = value; selRect = Rectangle.Empty; Refresh(); } }
         public LayerEditMode LayerMode
         { 
             get { return lem; } 
@@ -54,18 +56,18 @@ namespace TileCartographer.Controls
             { 
                 lem = value; 
                 selRect = Rectangle.Empty;
-                DrawSandwich(); 
-                Redraw(); 
+                DrawSandwich();
+                Refresh(); 
                 if (LayerEditModeChanged != null) LayerEditModeChanged(this, value); 
             } 
         }
         public LayerViewMode ViewMode
-        { get { return lvm; } set { lvm = value; Redraw(); } }
+        { get { return lvm; } set { lvm = value; Refresh(); } }
 
         public bool DimLayers
-        { get { return dimLayers; } set { dimLayers = value; Redraw(); } }
+        { get { return dimLayers; } set { dimLayers = value; Refresh(); } }
         public bool UnDimOnExit
-        { get { return unDimOnExit; } set { unDimOnExit = value; Redraw(); } }
+        { get { return unDimOnExit; } set { unDimOnExit = value; Refresh(); } }
 
         /// <summary>
         /// Allows highlighting tiles as the mouse hovers over them.
@@ -74,6 +76,7 @@ namespace TileCartographer.Controls
         public BytePoint2D HoverPoint { get { return hovPoint; } }
         #endregion
 
+        #region Methods
         public MapCanvas()
         {
             InitializeComponent();
@@ -94,8 +97,6 @@ namespace TileCartographer.Controls
         /// <param name="clip">The initial clipboard to use.</param>
         public void LoadMap(TCProject Project, TCMap Map, Image tSet, TileClip clip)
         {
-            this.Enabled = true;
-
             undoQueue.Clear();
             redoQueue.Clear();
 
@@ -119,8 +120,6 @@ namespace TileCartographer.Controls
         /// </summary>
         public void CloseMap()
         {
-            this.VerticalScroll.Value = 0;
-            imgViewport.Image = null;
             if (Tilemap != null) Tilemap.Dispose();
             if (Tileset != null) Tileset.Dispose();
             if (Lower != null) Lower.Dispose();
@@ -132,10 +131,11 @@ namespace TileCartographer.Controls
             undoQueue.Clear();
             redoQueue.Clear();
             Clipboard = null;
+            Tilemap = null;
             tMap = null;
             tProj = null;
             selRect = Rectangle.Empty;
-            this.Enabled = false;
+            Refresh();
         }
 
         /// <summary>
@@ -144,13 +144,13 @@ namespace TileCartographer.Controls
         /// <param name="Filename">The file path to save to. Assumes .png extension.</param>
         public void SaveToImage(string Filename)
         {
-            var bitm = (Bitmap)layerImgs[0].Clone();
-            var g = Graphics.FromImage(bitm);
-
-            g.DrawImage(layerImgs[1], Point.Empty);
-            g.DrawImage(layerImgs[2], Point.Empty);
-
-            bitm.Save(Filename, ImageFormat.Png);
+            using(var bitm = (Bitmap)layerImgs[0].Clone())
+            using (var g = Graphics.FromImage(bitm))
+            {
+                g.DrawImage(layerImgs[1], Point.Empty);
+                g.DrawImage(layerImgs[2], Point.Empty);
+                bitm.Save(Filename, ImageFormat.Png);
+            }
         }
 
         //TODO: add neighbouring autotiles to the queue (without adding the same one more than once)
@@ -167,6 +167,7 @@ namespace TileCartographer.Controls
                             updateQueue.Enqueue(new KeyValuePair<int, BytePoint2D>(x, new BytePoint2D(i, j)));
                     }
         }
+        #endregion
 
         #region Editing Functions
         public void Undo()
@@ -184,7 +185,7 @@ namespace TileCartographer.Controls
             else
             {
                 SetQueue(oldMap, newMap);
-                Redraw();
+                Refresh();
             }
 
             if (UndoCountChanged != null) UndoCountChanged(this, undoQueue.Count);
@@ -206,7 +207,7 @@ namespace TileCartographer.Controls
             else
             {
                 SetQueue(oldMap, newMap);
-                Redraw();
+                Refresh();
             }
 
             if (UndoCountChanged != null) UndoCountChanged(this, undoQueue.Count);
@@ -233,7 +234,7 @@ namespace TileCartographer.Controls
         /// </summary>
         /// <param name="loc">The current tile coordinate to fill.</param>
         /// <param name="origin">The origin of the flood fill. Required for tiling with clipboards larger than 1x1.</param>
-        public void FloodFill(Point loc, Point origin)
+        public void FloodFill(Point loc, Point origin, bool clear)
         {
             if (loc.Equals(origin)) fillList.Clear();
 
@@ -253,16 +254,21 @@ namespace TileCartographer.Controls
             if (x < 0) x = Clipboard.Data.GetLength(0) + x;
             if (y < 0) y = Clipboard.Data.GetLength(1) + y;
 
-            currentLayer[loc.X, loc.Y] = Clipboard.Data[x, y];
+            if (currentLayer[loc.X, loc.Y].Equals(Clipboard.Data[x, y])) return;
+
+            if (clear)
+                currentLayer[loc.X, loc.Y] = new BytePoint2D(0xFF, 0);
+            else
+                currentLayer[loc.X, loc.Y] = Clipboard.Data[x, y];
 
             if (LayerMode != LayerEditMode.Collision)
                 updateQueue.Enqueue(new KeyValuePair<int, BytePoint2D>((int)LayerMode, new BytePoint2D(loc.X, loc.Y)));
       
-            //check for matching tiles                      //recursive fill
-            if (currentLayer[loc.X, loc.Y - 1].Equals(old)) FloodFill(new Point(loc.X, loc.Y - 1), origin);
-            if (currentLayer[loc.X + 1, loc.Y].Equals(old)) FloodFill(new Point(loc.X + 1, loc.Y), origin);
-            if (currentLayer[loc.X, loc.Y + 1].Equals(old)) FloodFill(new Point(loc.X, loc.Y + 1), origin);
-            if (currentLayer[loc.X - 1, loc.Y].Equals(old)) FloodFill(new Point(loc.X - 1, loc.Y), origin);
+            //keep inside bounds         //check for matching tiles                      //recursive fill
+            if (loc.Y - 1 >= 0)          if (currentLayer[loc.X, loc.Y - 1].Equals(old)) FloodFill(new Point(loc.X, loc.Y - 1), origin, clear);
+            if (loc.X + 1 < tMap.Width)  if (currentLayer[loc.X + 1, loc.Y].Equals(old)) FloodFill(new Point(loc.X + 1, loc.Y), origin, clear);
+            if (loc.Y + 1 < tMap.Height) if (currentLayer[loc.X, loc.Y + 1].Equals(old)) FloodFill(new Point(loc.X, loc.Y + 1), origin, clear);
+            if (loc.X - 1 >= 0)          if (currentLayer[loc.X - 1, loc.Y].Equals(old)) FloodFill(new Point(loc.X - 1, loc.Y), origin, clear);
         }
 
         /// <summary>
@@ -282,7 +288,7 @@ namespace TileCartographer.Controls
             selRect = r;
             Clipboard = tempClip;
 
-            Redraw();
+            Refresh();
         }
 
         /// <summary>
@@ -335,9 +341,11 @@ namespace TileCartographer.Controls
                     return;
                 }
 
-                var g = Graphics.FromImage(layerImgs[(int)LayerMode]);
-                g.CompositingMode = CompositingMode.SourceCopy;
-                g.FillRectangle(new SolidBrush(Color.Transparent), rScale);
+                using (var g = Graphics.FromImage(layerImgs[(int)LayerMode]))
+                {
+                    g.CompositingMode = CompositingMode.SourceCopy;
+                    g.FillRectangle(new SolidBrush(Color.Transparent), rScale);
+                }
             }
             
             if (clear)
@@ -346,7 +354,7 @@ namespace TileCartographer.Controls
                 if (RedoCountChanged != null) RedoCountChanged(this, redoQueue.Count);
             }
 
-            Redraw();
+            Refresh();
         }
 
         /// <summary>
@@ -411,19 +419,21 @@ namespace TileCartographer.Controls
             }
 
             //update image [non-autotiles]
-            var g = Graphics.FromImage(layerImgs[(int)LayerMode]);
-            for (int i = 0; i < dest.Width; i += Clipboard.Section.Width)
-                for (int j = 0; j < dest.Height; j += Clipboard.Section.Height)
-                {
-                    var w2 = Math.Min(Clipboard.Section.Width, dest.Width - (i % dest.Width)) * tSize;
-                    var h2 = Math.Min(Clipboard.Section.Height, dest.Height - (j % dest.Height)) * tSize;
-                    var sr = new Rectangle(0, 0, w2, h2);
-                    var dr = new Rectangle((dest.X + i) * tSize, (dest.Y + j) * tSize, w2, h2);
+            using (var g = Graphics.FromImage(layerImgs[(int)LayerMode]))
+            {
+                for (int i = 0; i < dest.Width; i += Clipboard.Section.Width)
+                    for (int j = 0; j < dest.Height; j += Clipboard.Section.Height)
+                    {
+                        var w2 = Math.Min(Clipboard.Section.Width, dest.Width - (i % dest.Width)) * tSize;
+                        var h2 = Math.Min(Clipboard.Section.Height, dest.Height - (j % dest.Height)) * tSize;
+                        var sr = new Rectangle(0, 0, w2, h2);
+                        var dr = new Rectangle((dest.X + i) * tSize, (dest.Y + j) * tSize, w2, h2);
 
-                    g.CompositingMode = CompositingMode.SourceCopy;
-                    if (cButton == MouseButtons.Right) g.FillRectangle(new SolidBrush(Color.Transparent), dr);
-                    else g.DrawImage(Clipboard.SectionImg, dr, sr, GraphicsUnit.Pixel);
-                }
+                        g.CompositingMode = CompositingMode.SourceCopy;
+                        if (cButton == MouseButtons.Right) g.FillRectangle(new SolidBrush(Color.Transparent), dr);
+                        else g.DrawImage(Clipboard.SectionImg, dr, sr, GraphicsUnit.Pixel);
+                    }
+            }
         }
         #endregion
 
@@ -492,6 +502,8 @@ namespace TileCartographer.Controls
                 }
             }
 
+            g.Dispose();
+
             return img;
         }
 
@@ -520,14 +532,9 @@ namespace TileCartographer.Controls
             g.Dispose();
         }
 
-        /// <summary>
-        /// Combines Lower, current layer, Upper, grid and selection highlighting.
-        /// "Quick Redraw"
-        /// </summary>
-        protected override void Redraw(bool refresh = true)
+        protected override void OnPaint(PaintEventArgs e)
         {
             if (tMap == null) return;
-
             Graphics g;
 
             #region UpdateQueue
@@ -542,6 +549,7 @@ namespace TileCartographer.Controls
                     if (currentLayer[tile.Value.X, tile.Value.Y].X == 0xFF) g.FillRectangle(new SolidBrush(Color.Transparent), new Rectangle(tile.Value.X * tSize, tile.Value.Y * tSize, tSize, tSize));
                     else g.DrawImage(bitm, new Point(tile.Value.X * tSize, tile.Value.Y * tSize));
                 }
+                g.Dispose();
                 if (tile.Key != (int)LayerMode) flag = true;
             }
             if (flag) DrawSandwich(); //if anything in the queue was from another layer, redraw Upper and Lower
@@ -571,11 +579,12 @@ namespace TileCartographer.Controls
             
             if (ViewMode == LayerViewMode.AllLayers && (int)LayerMode < 2) 
                 g.DrawImage(Upper, dest, 0, 0, dest.Width, dest.Height, GraphicsUnit.Pixel, dim ? dimAttr : stdAttr);
+
+            g.Dispose();
             #endregion
 
-            base.Redraw(false); //false so we dont refresh yet since theres more drawing to do (stops flickering)
-
-            g = Graphics.FromImage(imgViewport.Image);
+            base.OnPaint(e);
+            g = e.Graphics;
 
             if ((int)LayerMode == 3)
             {
@@ -588,7 +597,6 @@ namespace TileCartographer.Controls
                     }
             }
 
-
             var p = new Pen(Color.DarkOrange, 2);
 
             if (!selRect.IsEmpty)
@@ -596,35 +604,31 @@ namespace TileCartographer.Controls
 
             if (isMouseDown)
             {
-                var r = ScaleSelection;
+                var r = Selection;
 
                 //draw the transparent preveiw over the selection
                 if (PaintMode == LayerPaintMode.Rectangle && (Clipboard.Section.Width > 1 || Clipboard.Section.Height > 1))
                 {
-                    for (int i = 0; i < r.Width / tScale; i += Clipboard.Section.Width)
-                        for (int j = 0; j < r.Height / tScale; j += Clipboard.Section.Height)
+                    for (int i = 0; i < r.Width; i += Clipboard.Section.Width)
+                        for (int j = 0; j < r.Height; j += Clipboard.Section.Height)
                         {
-                            var w2 = (int)Math.Min(Clipboard.Section.Width * tScale, r.Width - ((i * tScale) % r.Width));
-                            var h2 = (int)Math.Min(Clipboard.Section.Height * tScale, r.Height - ((j * tScale) % r.Height));
-                            var sr = new Rectangle(0, 0, w2, h2);
-                            var dr = new Rectangle(r.X + i * tScale, r.Y + j * tScale, w2, h2);
+                            var w2 = (int)Math.Min(Clipboard.Section.Width, r.Width - (i % r.Width));
+                            var h2 = (int)Math.Min(Clipboard.Section.Height, r.Height - (j % r.Height));
+                            var sr = new Rectangle(0, 0, w2 * tSize, h2 * tSize);
+                            var dr = new Rectangle((r.X + i) * tScale, (r.Y + j) * tScale, w2 * tScale, h2 * tScale);
                             g.DrawImage(Clipboard.SectionImg, dr, sr.X, sr.Y, sr.Width, sr.Height, GraphicsUnit.Pixel, ovrAttr);
                         }
                 }
 
-                p = new Pen(Color.Red, 2);
-                g.DrawRectangle(p, r);
+                p.Color = Color.Red;
+                g.DrawRectangle(p, ScaleSelection);
             }
 
             if (HoverHighlighting && isMouseOver && !isMouseDown)
             {
-                p = new Pen(Color.Blue, 2);
+                p.Color = Color.Blue;
                 g.DrawRectangle(p, new Rectangle(hovPoint.X * tScale, hovPoint.Y * tScale, Clipboard.Section.Width * tScale, Clipboard.Section.Height * tScale));
             }
-
-            g.Dispose();
-
-            if (refresh) imgViewport.Refresh();
         }
 
         /// <summary>
@@ -638,32 +642,14 @@ namespace TileCartographer.Controls
 
             DrawSandwich();
 
-            Redraw();
+            Refresh();
         }
         #endregion
 
         #region Event Handlers
-        private void imgMap_MouseEnter(object sender, EventArgs e)
+        private void MapCanvas_MouseDown(object sender, MouseEventArgs e)
         {
-            //this is in all events to prevent the control from responding
-            //to input when no map has been opened (avoids null references)
-            if (imgViewport.Image == null) return;
-
-            isMouseOver = true;
-            Redraw();
-        }
-
-        private void imgMap_MouseLeave(object sender, EventArgs e)
-        {
-            if (imgViewport.Image == null) return;
-
-            isMouseOver = false;
-            Redraw();
-        }
-
-        private void imgMap_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (imgViewport.Image == null) return;
+            if (Tilemap == null) return;
             if (e.Button != MouseButtons.Left && e.Button != MouseButtons.Right) return;
 
             isMouseDown = true;
@@ -688,12 +674,12 @@ namespace TileCartographer.Controls
                 PasteClipData(new Rectangle(selPoint.X, selPoint.Y, Clipboard.Section.Width, Clipboard.Section.Height));
             }
 
-            Redraw();
+            Refresh();
         }
 
-        private void imgMap_MouseUp(object sender, MouseEventArgs e)
+        private void MapCanvas_MouseUp(object sender, MouseEventArgs e)
         {
-            if (imgViewport.Image == null) return;
+            if (Tilemap == null) return;
             if (!isMouseDown) return; //in case the mouse was already down before it entered the control
             if (e.Button != MouseButtons.Left && e.Button != MouseButtons.Right) return;
             
@@ -719,19 +705,19 @@ namespace TileCartographer.Controls
                     break;
 
                 case LayerPaintMode.Fill:
-                    FloodFill(Selection.Location, Selection.Location);
+                    FloodFill(Selection.Location, Selection.Location, cButton == MouseButtons.Right);
                     break;
             }
 
             isMouseDown = false;
             cButton = MouseButtons.None;
 
-            Redraw();
+            Refresh();
         }
 
-        private void imgMap_MouseMove(object sender, MouseEventArgs e)
+        private void MapCanvas_MouseMove(object sender, MouseEventArgs e)
         {
-            if (imgViewport.Image == null) return;
+            if (Tilemap == null) return;
 
             //update our selection coordinates
             var prevPoint = new BytePoint2D(drgPoint.X, drgPoint.Y);
@@ -768,7 +754,7 @@ namespace TileCartographer.Controls
                     PasteClipData(new Rectangle(selPoint.X, selPoint.Y, Clipboard.Section.Width, Clipboard.Section.Height));
                 }
                 //only redraw if above conditions met so we dont get a redraw every time the cursor moves a pixel.
-                Redraw();
+                Refresh();
             }
             if (PointsChanged != null) PointsChanged(this);
         }

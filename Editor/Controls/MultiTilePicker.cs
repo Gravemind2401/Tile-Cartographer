@@ -19,14 +19,14 @@ namespace TileCartographer.Controls
         //dynamic graphic, otherwise it must use the graphic specified by the index.
         private byte forceIndex = 0xFF;
 
-        #region Control Properties
+        #region Properties
         /// <summary>
         /// Allows the user to select multiple tiles by clicking and dragging.
         /// </summary>
         public bool AllowSelectionDrag { get; set; }
         #endregion
 
-        #region Public Methods
+        #region Methods
         public MultiTilePicker()
         {
             InitializeComponent();
@@ -44,8 +44,6 @@ namespace TileCartographer.Controls
                 CloseMultiTiles();
                 return;
             }
-
-            this.Enabled = true;
 
             tProj = Project;
             forceIndex = 0xFF;
@@ -74,12 +72,7 @@ namespace TileCartographer.Controls
                 }
             }
 
-            //set scrollbar to align with tiles
-            this.VerticalScroll.Maximum = (int)Math.Ceiling(tProj.MultiTiles.Count / 8f) * 32;
-            this.VerticalScroll.SmallChange = 32;
-            this.VerticalScroll.LargeChange = 32 * 2;
-
-            Redraw();
+            Refresh();
         }
 
         /// <summary>
@@ -87,16 +80,10 @@ namespace TileCartographer.Controls
         /// </summary>
         public void CloseMultiTiles()
         {
-            this.VerticalScroll.Value = 0;
-
-            if (imgViewport.Image != null) imgViewport.Image.Dispose();
-            imgViewport.Image = null;
-
             if (Tilemap != null) Tilemap.Dispose();
             Tilemap = null;
-            
             tProj = null;
-            this.Enabled = false;
+            Refresh();
         }
 
         /// <summary>
@@ -108,6 +95,7 @@ namespace TileCartographer.Controls
             var r = Selection;
             var rScale = new Rectangle(r.X * tSize, r.Y * tSize, r.Width * tSize, r.Height * tSize);
             var clip = new TileClip() { Origin = ClipOrigin.MultiTiles, Section = r };
+            if (clip.SectionImg != null) clip.SectionImg.Dispose();
             clip.SectionImg = ((Bitmap)Tilemap).Clone(rScale, PixelFormat.Format32bppArgb);
             clip.Data = new BytePoint2D[r.Width, r.Height];
 
@@ -124,24 +112,9 @@ namespace TileCartographer.Controls
         #endregion
 
         #region Event Handlers
-        private void imgTileset_MouseEnter(object sender, EventArgs e)
+        private void MultiTilePicker_MouseDown(object sender, MouseEventArgs e)
         {
-            if (imgViewport.Image == null) return;
-
-            isMouseOver = true;
-        }
-
-        private void imgTileset_MouseLeave(object sender, EventArgs e)
-        {
-            if (imgViewport.Image == null) return;
-
-            isMouseOver = false;
-            Redraw();
-        }
-
-        private void imgTileset_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (imgViewport.Image == null) return;
+            if (Tilemap == null) return;
 
             isMouseDown = true;
             var prevPoint = new BytePoint2D(selPoint.X, selPoint.Y);
@@ -160,20 +133,20 @@ namespace TileCartographer.Controls
 
             if (PointsChanged != null) PointsChanged(this);
 
-            Redraw();
+            Refresh();
         }
 
-        private void imgTileset_MouseUp(object sender, MouseEventArgs e)
+        private void MultiTilePicker_MouseUp(object sender, MouseEventArgs e)
         {
-            if (imgViewport.Image == null) return;
+            if (Tilemap == null) return;
 
             isMouseDown = false;
             if (PointsChanged != null) PointsChanged(this);
         }
 
-        private void imgTileset_MouseMove(object sender, MouseEventArgs e)
+        private void MultiTilePicker_MouseMove(object sender, MouseEventArgs e)
         {
-            if (imgViewport.Image == null) return;
+            if (Tilemap == null) return;
 
             var prevPoint = new BytePoint2D(drgPoint.X, drgPoint.Y);
             if (AllowSelectionDrag && isMouseDown)
@@ -185,13 +158,13 @@ namespace TileCartographer.Controls
             prevPoint = new BytePoint2D(hovPoint.X, hovPoint.Y);
             SetPoint(ref hovPoint, e.X, e.Y);
 
-            if (isMouseDown || HoverHighlighting && !prevPoint.Equals(hovPoint)) Redraw();
+            if (isMouseDown || HoverHighlighting && !prevPoint.Equals(hovPoint)) Refresh();
         }
 
         //gives the user the option to override a multitile by double-clicking on it
-        private void imgTileset_DoubleClick(object sender, EventArgs e)
+        private void MultiTilePicker_DoubleClick(object sender, EventArgs e)
         {
-            if (imgViewport.Image == null) return;
+            if (Tilemap == null) return;
 
             var r = Selection;
             int index = r.Y * 8 + r.X;

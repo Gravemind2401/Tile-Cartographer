@@ -91,6 +91,7 @@ namespace TileCartographer
             = selectToolStripMenuItem.Enabled = enabled;
 
             //Scale Menu
+            zoomInToolStripMenuItem.Enabled = zoomOutToolStripMenuItem.Enabled = enabled;
 
             //Tools Menu
             exportToImageToolStripMenuItem.Enabled = enabled;

@@ -12,10 +12,14 @@ using TileCartographer.Library;
 
 namespace TileCartographer.Controls
 {
-    public partial class PickerBase : UserControl
+    public partial class PickerBase : Panel
     {
+        #region Declarations
         private int zoomPower = 5;
         private bool showGrid = false;
+
+        private float scale { get { return (float)Math.Pow(2, zoomPower) / tSize; } }
+        private Rectangle sourceBounds { get { return new Rectangle(0, 0, Tilemap.Width, Tilemap.Height); } }
 
         protected bool isMouseOver = false;
         protected bool isMouseDown = false;
@@ -29,10 +33,6 @@ namespace TileCartographer.Controls
 
         protected Image Tilemap; //use Image instead of TCImage to save disk reads (lots of redrawing will be done)
 
-        private float scale { get { return (float)Math.Pow(2, zoomPower) / tSize; } }
-        private Rectangle sourceBounds { get { return new Rectangle(0, 0, Tilemap.Width, Tilemap.Height); } }
-        private Rectangle viewPortBounds { get { return new Rectangle(0, 0, imgViewport.Image.Width, imgViewport.Image.Height); } }
-
         protected int tSize { get { return (int)tProj.TileSize; } }
         protected int tScale { get { return (int)(tSize * scale); } }
         protected Rectangle ScaleSelection
@@ -43,7 +43,9 @@ namespace TileCartographer.Controls
                 return new Rectangle(r.X * tScale, r.Y * tScale, r.Width * tScale, r.Height * tScale);
             }
         }
+        #endregion
 
+        #region Properties
         /// <summary>
         /// Allows highlighting tiles as the mouse hovers over them.
         /// </summary>
@@ -51,7 +53,7 @@ namespace TileCartographer.Controls
         /// <summary>
         /// Renders a grid over the control image.
         /// </summary>
-        public bool ShowGrid { get { return showGrid; } set { showGrid = value; Redraw(); } }
+        public bool ShowGrid { get { return showGrid; } set { showGrid = value; Refresh(); } }
         /// <summary>
         /// Gets the currently selected area as a Rectangle.
         /// </summary>
@@ -70,78 +72,105 @@ namespace TileCartographer.Controls
         /// <summary>
         /// The zoom level of the viewport (2 ^ ZoomPower).
         /// </summary>
-        public int ZoomPower { get { return zoomPower; } set { zoomPower = Math.Max(3, Math.Min(5, value)); Redraw(); } }
+        public int ZoomPower { get { return zoomPower; } set { zoomPower = Math.Max(3, Math.Min(6, value)); Refresh(); } }
+        #endregion
 
+        #region Methods
         public PickerBase()
         {
             InitializeComponent();
+            this.DoubleBuffered = true; //prevents flickering
+            
+            this.HorizontalScroll.SmallChange = 
+            this.VerticalScroll.SmallChange = 32;
+            
+            this.HorizontalScroll.LargeChange = 
+            this.VerticalScroll.LargeChange = 32 * 8;
         }
 
         public void HideSelection()
         {
             hideSelection = true;
-            Redraw();
+            Refresh();
         }
 
         public void ShowSelection()
         {
             hideSelection = false;
-            Redraw();
-        }
-
-        private void DrawGrid(Graphics g)
-        {
-            var p = new Pen(Color.FromArgb(50, Color.Black), 2);
-
-            for (int x = 0; x <= imgViewport.Image.Width; x += tScale)
-                g.DrawLine(p, x, 0, x, imgViewport.Image.Height);
-
-            for (int y = 0; y <= imgViewport.Image.Height; y += tScale)
-                g.DrawLine(p, 0, y, imgViewport.Image.Width, y);
+            Refresh();
         }
 
         protected void SetPoint(ref BytePoint2D point, int X, int Y)
         {
-            point.X = (byte)Math.Max(0, Math.Min(Tilemap.Width / tSize, X / tScale));
-            point.Y = (byte)Math.Max(0, Math.Min(Tilemap.Height / tSize, Y / tScale));
+            if (Tilemap == null || tProj == null) return;
+            X -= this.AutoScrollPosition.X; //translate click coordinates
+            Y -= this.AutoScrollPosition.Y; //to match scrollbar offsets
+            point.X = (byte)Math.Max(0, Math.Min(Tilemap.Width / tSize - 1, X / tScale));
+            point.Y = (byte)Math.Max(0, Math.Min(Tilemap.Height / tSize - 1, Y / tScale));
         }
 
-        protected virtual void Redraw(bool refresh = true)
+        protected override void OnPaint(PaintEventArgs e)
         {
-            if (Tilemap == null) return;
+            e.Graphics.Clear(this.BackColor);
+            base.OnPaint(e);
 
-            GC.Collect();
+            if (Tilemap == null || tProj == null) return;
+            
+            var p = new Pen(Color.FromArgb(50, Color.Black), 2);
+            var g = e.Graphics;
 
-            if (imgViewport.Image == null) 
-                imgViewport.Image = new Bitmap((int)(Tilemap.Width * scale), (int)(Tilemap.Height * scale));
-            if (imgViewport.Image.Width != Tilemap.Width * scale || imgViewport.Image.Height != Tilemap.Height * scale)
+            g.TranslateTransform(this.AutoScrollPosition.X, this.AutoScrollPosition.Y);
+            g.InterpolationMode = InterpolationMode.NearestNeighbor; //prevents fuzziness
+            g.PixelOffsetMode = PixelOffsetMode.Half; //required for accurate scaling
+            g.DrawImage(Tilemap, new RectangleF(0, 0, Tilemap.Width * scale, Tilemap.Height * scale));
+
+            if (showGrid) //draw grid
             {
-                imgViewport.Image.Dispose();
-                imgViewport.Image = new Bitmap((int)(Tilemap.Width * scale), (int)(Tilemap.Height * scale));
-            }
-                
-            var p = new Pen(Color.Red, 2);
+                for (int x = 0; x <= Tilemap.Width * scale; x += tScale)
+                    g.DrawLine(p, x, 0, x, Tilemap.Height * scale);
 
-            using (var g = Graphics.FromImage(imgViewport.Image))
-            {
-                g.InterpolationMode = InterpolationMode.NearestNeighbor;
-                g.CompositingMode = CompositingMode.SourceCopy;
-                g.PixelOffsetMode = PixelOffsetMode.Half; //required for accurate scaling
-                g.DrawImage(Tilemap, viewPortBounds);
-
-                g.CompositingMode = CompositingMode.SourceOver;
-
-                if (showGrid) DrawGrid(g);
-                if (!hideSelection) g.DrawRectangle(p, ScaleSelection);
-
-                if (HoverHighlighting && isMouseOver && !isMouseDown)
-                {
-                    p = new Pen(Color.Blue, 2);
-                    g.DrawRectangle(p, new Rectangle(hovPoint.X * tScale, hovPoint.Y * tScale, tScale, tScale));
-                }
+                for (int y = 0; y <= Tilemap.Height * scale; y += tScale)
+                    g.DrawLine(p, 0, y, Tilemap.Width * scale, y);
             }
 
-            if (refresh) imgViewport.Refresh();
+            if (!hideSelection)
+            {
+                p.Color = Color.Red;
+                g.DrawRectangle(p, ScaleSelection);
+            }
+
+            if (HoverHighlighting && isMouseOver && !isMouseDown)
+            {
+                p.Color = Color.Blue;
+                g.DrawRectangle(p, new Rectangle(hovPoint.X * tScale, hovPoint.Y * tScale, tScale, tScale));
+            }
         }
+
+        new public void Refresh()
+        {
+            this.AutoScrollMinSize = (Tilemap == null || tProj == null) ? 
+                new Size() : new Size((int)(Tilemap.Width * scale), (int)(Tilemap.Height * scale));
+
+            base.Refresh();
+        }
+        #endregion
+
+        #region Event Handlers
+        private void PickerBase_MouseEnter(object sender, EventArgs e)
+        {
+            isMouseOver = true;
+        }
+
+        private void PickerBase_MouseLeave(object sender, EventArgs e)
+        {
+            isMouseOver = false;
+            Refresh();
+        }
+
+        private void PickerBase_MouseDown(object sender, MouseEventArgs e)
+        {
+            this.Focus();
+        }
+        #endregion
     }
 }

@@ -82,7 +82,6 @@ namespace TileCartographer.Library
             var data = Data.GetReferenceData3x4();
             Rectangle sr, dr;
 
-            var g = Graphics.FromImage(sheet);
             using (var bitm = baseImage.GetBitmap())
             {
                 for (int x = 0; x < 16; x++)
@@ -94,7 +93,9 @@ namespace TileCartographer.Library
 
                         sr = new Rectangle(p.X * qSize, p.Y * qSize, qSize, qSize);
                         dr = new Rectangle(x * qSize, y * qSize, qSize, qSize);
-                        g.DrawImage(bitm, dr, sr, GraphicsUnit.Pixel);
+
+                        using (var g = Graphics.FromImage(sheet))
+                            g.DrawImage(bitm, dr, sr, GraphicsUnit.Pixel);
                     }
                 }
             }

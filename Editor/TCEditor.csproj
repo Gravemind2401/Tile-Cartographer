@@ -74,31 +74,37 @@
       <DependentUpon>CollisionPicker.cs</DependentUpon>
     </Compile>
     <Compile Include="Controls\Enums.cs" />
+    <Compile Include="Controls\MapCanvas.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\MapCanvas.Designer.cs">
+      <DependentUpon>MapCanvas.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\MultiTilePicker.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\MultiTilePicker.Designer.cs">
+      <DependentUpon>MultiTilePicker.cs</DependentUpon>
+    </Compile>
     <Compile Include="Controls\PickerBase.cs">
-      <SubType>UserControl</SubType>
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="Controls\PickerBase.Designer.cs">
       <DependentUpon>PickerBase.cs</DependentUpon>
     </Compile>
     <Compile Include="Controls\RefIndexPicker.cs">
-      <SubType>UserControl</SubType>
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="Controls\RefIndexPicker.Designer.cs">
       <DependentUpon>RefIndexPicker.cs</DependentUpon>
     </Compile>
-    <Compile Include="Controls\MultiTilePicker.cs">
-      <SubType>UserControl</SubType>
+    <Compile Include="Controls\TilePicker.cs">
+      <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Controls\MultiTilePicker.Designer.cs">
-      <DependentUpon>MultiTilePicker.cs</DependentUpon>
+    <Compile Include="Controls\TilePicker.Designer.cs">
+      <DependentUpon>TilePicker.cs</DependentUpon>
     </Compile>
     <Compile Include="Controls\Events.cs" />
-    <Compile Include="Controls\MapCanvas.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Controls\MapCanvas.Designer.cs">
-      <DependentUpon>MapCanvas.cs</DependentUpon>
-    </Compile>
     <Compile Include="Controls\MapEditor.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -112,12 +118,6 @@
       <DependentUpon>ProjectExplorer.cs</DependentUpon>
     </Compile>
     <Compile Include="Controls\TileClip.cs" />
-    <Compile Include="Controls\TilePicker.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Controls\TilePicker.Designer.cs">
-      <DependentUpon>TilePicker.cs</DependentUpon>
-    </Compile>
     <Compile Include="Library\TCRefSheet.cs" />
     <Compile Include="Library\Data.cs" />
     <Compile Include="Library\TCMap.cs" />
@@ -152,26 +152,26 @@
     <EmbeddedResource Include="Controls\CollisionPicker.resx">
       <DependentUpon>CollisionPicker.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Controls\MapCanvas.resx">
+      <DependentUpon>MapCanvas.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\MultiTilePicker.resx">
+      <DependentUpon>MultiTilePicker.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Controls\PickerBase.resx">
       <DependentUpon>PickerBase.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Controls\RefIndexPicker.resx">
       <DependentUpon>RefIndexPicker.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Controls\MultiTilePicker.resx">
-      <DependentUpon>MultiTilePicker.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Controls\MapCanvas.resx">
-      <DependentUpon>MapCanvas.cs</DependentUpon>
+    <EmbeddedResource Include="Controls\TilePicker.resx">
+      <DependentUpon>TilePicker.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Controls\MapEditor.resx">
       <DependentUpon>MapEditor.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Controls\ProjectExplorer.resx">
       <DependentUpon>ProjectExplorer.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Controls\TilePicker.resx">
-      <DependentUpon>TilePicker.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
@@ -245,6 +245,7 @@
       <Install>true</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

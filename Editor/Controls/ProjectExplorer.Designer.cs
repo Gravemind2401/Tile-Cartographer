@@ -67,7 +67,6 @@
             // 
             // tvExplorer
             // 
-            this.tvExplorer.ContextMenuStrip = this.contextMenuStrip1;
             this.tvExplorer.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tvExplorer.HideSelection = false;
             this.tvExplorer.HotTracking = true;

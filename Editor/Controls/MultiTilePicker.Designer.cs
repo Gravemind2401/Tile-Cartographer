@@ -28,26 +28,15 @@
         /// </summary>
         private void InitializeComponent()
         {
-            ((System.ComponentModel.ISupportInitialize)(this.imgViewport)).BeginInit();
             this.SuspendLayout();
-            // 
-            // imgViewport
-            // 
-            this.imgViewport.DoubleClick += new System.EventHandler(this.imgTileset_DoubleClick);
-            this.imgViewport.MouseDown += new System.Windows.Forms.MouseEventHandler(this.imgTileset_MouseDown);
-            this.imgViewport.MouseEnter += new System.EventHandler(this.imgTileset_MouseEnter);
-            this.imgViewport.MouseLeave += new System.EventHandler(this.imgTileset_MouseLeave);
-            this.imgViewport.MouseMove += new System.Windows.Forms.MouseEventHandler(this.imgTileset_MouseMove);
-            this.imgViewport.MouseUp += new System.Windows.Forms.MouseEventHandler(this.imgTileset_MouseUp);
             // 
             // MultiTilePicker
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Name = "MultiTilePicker";
-            ((System.ComponentModel.ISupportInitialize)(this.imgViewport)).EndInit();
+            this.DoubleClick += new System.EventHandler(this.MultiTilePicker_DoubleClick);
+            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MultiTilePicker_MouseDown);
+            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.MultiTilePicker_MouseMove);
+            this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.MultiTilePicker_MouseUp);
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 

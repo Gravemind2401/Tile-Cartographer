@@ -22,6 +22,7 @@ namespace TileCartographer.Controls
         private TCProject cProj;
         private TCMap cMap;
 
+        #region Methods
         public MapEditor()
         {
             InitializeComponent();
@@ -73,6 +74,7 @@ namespace TileCartographer.Controls
             MultiTilePicker.CloseMultiTiles();
             MapCanvas.CloseMap();
         }
+        #endregion
 
         #region Event Handlers
         private void TilePicker_PointsChanged(object sender)

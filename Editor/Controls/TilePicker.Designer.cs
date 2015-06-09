@@ -28,30 +28,18 @@
         /// </summary>
         private void InitializeComponent()
         {
-            ((System.ComponentModel.ISupportInitialize)(this.imgViewport)).BeginInit();
             this.SuspendLayout();
-            // 
-            // imgTileset
-            // 
-            this.imgViewport.MouseDown += new System.Windows.Forms.MouseEventHandler(this.imgViewport_MouseDown);
-            this.imgViewport.MouseEnter += new System.EventHandler(this.imgViewport_MouseEnter);
-            this.imgViewport.MouseLeave += new System.EventHandler(this.imgViewport_MouseLeave);
-            this.imgViewport.MouseMove += new System.Windows.Forms.MouseEventHandler(this.imgViewport_MouseMove);
-            this.imgViewport.MouseUp += new System.Windows.Forms.MouseEventHandler(this.imgViewport_MouseUp);
             // 
             // TilePicker
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Name = "TilePicker";
-            ((System.ComponentModel.ISupportInitialize)(this.imgViewport)).EndInit();
+            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.TilePicker_MouseDown);
+            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.TilePicker_MouseMove);
+            this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.TilePicker_MouseUp);
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
         #endregion
-
-
     }
 }

@@ -28,25 +28,28 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.referenceTilePicker1 = new TileCartographer.Controls.RefIndexPicker();
+            this.ReferenceTilePicker = new TileCartographer.Controls.RefIndexPicker();
             this.SuspendLayout();
             // 
-            // referenceTilePicker1
+            // ReferenceTilePicker
             // 
-            this.referenceTilePicker1.HoverHighlighting = false;
-            this.referenceTilePicker1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.referenceTilePicker1.Location = new System.Drawing.Point(0, 0);
-            this.referenceTilePicker1.Name = "referenceTilePicker1";
-            this.referenceTilePicker1.Size = new System.Drawing.Size(256, 192);
-            this.referenceTilePicker1.TabIndex = 0;
-            this.referenceTilePicker1.IndexChanged += new TileCartographer.Controls.IndexChangedEventHandler(this.referenceTilePicker1_IndexChanged);
+            this.ReferenceTilePicker.AutoScroll = true;
+            this.ReferenceTilePicker.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ReferenceTilePicker.HoverHighlighting = false;
+            this.ReferenceTilePicker.Location = new System.Drawing.Point(0, 0);
+            this.ReferenceTilePicker.Name = "ReferenceTilePicker";
+            this.ReferenceTilePicker.ShowGrid = true;
+            this.ReferenceTilePicker.Size = new System.Drawing.Size(256, 192);
+            this.ReferenceTilePicker.TabIndex = 0;
+            this.ReferenceTilePicker.ZoomPower = 5;
+            this.ReferenceTilePicker.IndexChanged += new TileCartographer.Controls.IndexChangedEventHandler(this.ReferenceTilePicker_IndexChanged);
             // 
             // MultiTileDialogue
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(256, 192);
-            this.Controls.Add(this.referenceTilePicker1);
+            this.Controls.Add(this.ReferenceTilePicker);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             this.Name = "MultiTileDialogue";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
@@ -57,6 +60,6 @@
 
         #endregion
 
-        private Controls.RefIndexPicker referenceTilePicker1;
+        private Controls.RefIndexPicker ReferenceTilePicker;
     }
 }

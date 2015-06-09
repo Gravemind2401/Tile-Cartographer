@@ -14,11 +14,14 @@ namespace TileCartographer.Controls
 {
     public partial class TilePicker : PickerBase
     {
+        #region Properties
         /// <summary>
         /// Allows the user to select multiple tiles by clicking and dragging.
         /// </summary>
         public bool AllowSelectionDrag { get; set; }
+        #endregion
 
+        #region Methods
         public TilePicker()
         {
             InitializeComponent();
@@ -26,24 +29,17 @@ namespace TileCartographer.Controls
 
         public void LoadTileset(TCProject Project, Image Tileset)
         {
-            this.Enabled = true;
             tProj = Project;
             Tilemap = Tileset;
-
-            //set scrollbar to align with tiles
-            this.VerticalScroll.Maximum = Tilemap.Height / tSize * 32;
-            this.VerticalScroll.SmallChange = 32;
-            this.VerticalScroll.LargeChange = 32 * 8;
-
-            Redraw();
+            Refresh();
         }
 
         public void CloseTileset()
         {
-            this.VerticalScroll.Value = 0;
-            imgViewport.Image = null;
             if (Tilemap != null) Tilemap.Dispose();
-            this.Enabled = false;
+            Tilemap = null;
+            tProj = null;
+            Refresh();
         }
 
         public TileClip GetClip()
@@ -51,6 +47,7 @@ namespace TileCartographer.Controls
             var r = Selection;
             var rScale = new Rectangle(r.X * tSize, r.Y * tSize, r.Width * tSize, r.Height * tSize);
             var clip = new TileClip() { Origin = ClipOrigin.Tileset, Section = r };
+            if (clip.SectionImg != null) clip.SectionImg.Dispose();
             clip.SectionImg = ((Bitmap)Tilemap).Clone(rScale, PixelFormat.Format32bppArgb);
             clip.Data = new BytePoint2D[r.Width, r.Height];
 
@@ -60,46 +57,35 @@ namespace TileCartographer.Controls
 
             return clip;
         }
+        #endregion
 
         #region Event Handlers
-        private void imgViewport_MouseEnter(object sender, EventArgs e)
+        private void TilePicker_MouseDown(object sender, MouseEventArgs e)
         {
-            if (imgViewport.Image == null) return;
-
-            isMouseOver = true;
-        }
-
-        private void imgViewport_MouseLeave(object sender, EventArgs e)
-        {
-            if (imgViewport.Image == null) return;
-
-            isMouseOver = false;
-            Redraw();
-        }
-
-        private void imgViewport_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (imgViewport.Image == null) return;
+            if (Tilemap == null) return;
+            if (e.Button !=  MouseButtons.Left) return;
 
             isMouseDown = true;
             var prevPoint = new BytePoint2D(selPoint.X, selPoint.Y);
             SetPoint(ref selPoint, e.X, e.Y);
             SetPoint(ref drgPoint, e.X, e.Y);
             if (PointsChanged != null) PointsChanged(this);
-            Redraw();
+            Refresh();
         }
 
-        private void imgViewport_MouseUp(object sender, MouseEventArgs e)
+        private void TilePicker_MouseUp(object sender, MouseEventArgs e)
         {
-            if (imgViewport.Image == null) return;
+            if (Tilemap == null) return;
+            if (e.Button != MouseButtons.Left) return;
 
             isMouseDown = false;
             if (PointsChanged != null) PointsChanged(this);
         }
 
-        private void imgViewport_MouseMove(object sender, MouseEventArgs e)
+        private void TilePicker_MouseMove(object sender, MouseEventArgs e)
         {
-            if (imgViewport.Image == null) return;
+            if (Tilemap == null) return;
+            if (e.Button != MouseButtons.Left) return;
 
             var prevPoint = new BytePoint2D(drgPoint.X, drgPoint.Y);
             if (AllowSelectionDrag && isMouseDown)
@@ -111,10 +97,11 @@ namespace TileCartographer.Controls
             prevPoint = new BytePoint2D(hovPoint.X, hovPoint.Y);
             SetPoint(ref hovPoint, e.X, e.Y);
 
-            if (isMouseDown || HoverHighlighting && !prevPoint.Equals(hovPoint)) Redraw();
+            if (isMouseDown || HoverHighlighting && !prevPoint.Equals(hovPoint)) Refresh();
         }
         #endregion
 
         public event PointsChangedEventHandler PointsChanged;
+
     }
 }

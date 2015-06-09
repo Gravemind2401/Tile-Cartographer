@@ -10,8 +10,6 @@ using TileCartographer.Library;
 
 namespace TileCartographer.Library
 {
-    //TODO: 
-    //      export/import newer values
     public class TCProject
     {
         private string fName;
@@ -24,7 +22,7 @@ namespace TileCartographer.Library
 
         public List<TCImage> Tilesets { get; set; }
         public List<TCImage> MultiTiles { get; set; }
-        public List<TCImage> Sprites { get; set; } //TODO: implement (?)
+        public List<TCImage> Sprites { get; set; }
         public List<TCMap> MapList;
 
         public byte PlayerSpriteID { get; set; }

@@ -14,7 +14,7 @@ namespace TileCartographer.Controls
 {
     public partial class RefIndexPicker : PickerBase
     {
-        #region Public Methods
+        #region Methods
         public RefIndexPicker()
         {
             InitializeComponent();
@@ -27,12 +27,9 @@ namespace TileCartographer.Controls
         /// <param name="multiTileIndex">The index of the multitile.</param>
         public void LoadRefSheet(TCProject Project, int multiTileIndex)
         {
-            this.Enabled = true;
             tProj = Project;
-
             Tilemap = TCRefSheet.GenerateReference(tProj.MultiTiles[multiTileIndex], tProj.TileSize);
-
-            Redraw();
+            Refresh();
         }
 
         /// <summary>
@@ -40,64 +37,50 @@ namespace TileCartographer.Controls
         /// </summary>
         public void CloseRefSheet()
         {
-            this.VerticalScroll.Value = 0;
-            imgViewport.Image = null;
-            if (Tilemap != null) 
-                Tilemap.Dispose();
-            this.Enabled = false;
+            if (Tilemap != null) Tilemap.Dispose();
+            Tilemap = null;
+            tProj = null;
+            Refresh();
         }
         #endregion
 
         #region Event Handlers
-        private void imgTileset_MouseEnter(object sender, EventArgs e)
+        private void RefIndexPicker_MouseDown(object sender, MouseEventArgs e)
         {
-            if (imgViewport.Image == null) return;
-
-            isMouseOver = true;
-        }
-
-        private void imgTileset_MouseLeave(object sender, EventArgs e)
-        {
-            if (imgViewport.Image == null) return;
-
-            isMouseOver = false;
-            Redraw();
-        }
-
-        private void imgTileset_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (imgViewport.Image == null) return;
+            if (Tilemap == null) return;
 
             isMouseDown = true;
             var prevPoint = new BytePoint2D(selPoint.X, selPoint.Y);
             SetPoint(ref selPoint, e.X, e.Y);
             SetPoint(ref drgPoint, e.X, e.Y);
-            Redraw();
+            Refresh();
         }
 
-        private void imgTileset_MouseUp(object sender, MouseEventArgs e)
+        private void RefIndexPicker_MouseUp(object sender, MouseEventArgs e)
         {
-            if (imgViewport.Image == null) return;
+            if (Tilemap == null) return;
 
             isMouseDown = false;
             if (PointsChanged != null) PointsChanged(this);
         }
 
-        private void imgTileset_MouseMove(object sender, MouseEventArgs e)
+        private void RefIndexPicker_MouseMove(object sender, MouseEventArgs e)
         {
-            if (imgViewport.Image == null) return;
+            if (Tilemap == null) return;
 
             var prevPoint = new BytePoint2D(drgPoint.X, drgPoint.Y);
 
             prevPoint = new BytePoint2D(hovPoint.X, hovPoint.Y);
             SetPoint(ref hovPoint, e.X, e.Y);
 
-            if (isMouseDown || HoverHighlighting && !prevPoint.Equals(hovPoint)) Redraw();
+            if (isMouseDown || HoverHighlighting && !prevPoint.Equals(hovPoint)) Refresh();
         }
 
         //choose index by double-click instead of single click (less accidental clicks)
-        private void imgTileset_DoubleClick(object sender, EventArgs e)
+        private void RefIndexPicker_DoubleClick(object sender, EventArgs e)
         {
+            if (Tilemap == null) return;
+
             var r = Selection;
             byte index = (byte)(r.Y * 8 + r.X);
             if (IndexChanged != null) IndexChanged(this, index);      

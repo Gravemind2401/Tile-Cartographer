@@ -28,29 +28,18 @@
         /// </summary>
         private void InitializeComponent()
         {
-            ((System.ComponentModel.ISupportInitialize)(this.imgViewport)).BeginInit();
             this.SuspendLayout();
-            // 
-            // imgViewport
-            // 
-            this.imgViewport.MouseDown += new System.Windows.Forms.MouseEventHandler(this.imgMap_MouseDown);
-            this.imgViewport.MouseEnter += new System.EventHandler(this.imgMap_MouseEnter);
-            this.imgViewport.MouseLeave += new System.EventHandler(this.imgMap_MouseLeave);
-            this.imgViewport.MouseMove += new System.Windows.Forms.MouseEventHandler(this.imgMap_MouseMove);
-            this.imgViewport.MouseUp += new System.Windows.Forms.MouseEventHandler(this.imgMap_MouseUp);
             // 
             // MapCanvas
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Name = "MapCanvas";
-            ((System.ComponentModel.ISupportInitialize)(this.imgViewport)).EndInit();
+            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MapCanvas_MouseDown);
+            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.MapCanvas_MouseMove);
+            this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.MapCanvas_MouseUp);
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
         #endregion
-
     }
 }
