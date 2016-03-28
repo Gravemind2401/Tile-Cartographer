@@ -75,7 +75,7 @@
             // 
             // TilePicker
             // 
-            this.TilePicker.AllowSelectionDrag = true;
+            this.TilePicker.MultiSelect = true;
             this.TilePicker.AutoScroll = true;
             this.TilePicker.Dock = System.Windows.Forms.DockStyle.Fill;
             this.TilePicker.HoverHighlighting = false;
@@ -89,7 +89,7 @@
             // 
             // MultiTilePicker
             // 
-            this.MultiTilePicker.AllowSelectionDrag = false;
+            this.MultiTilePicker.MultiSelect = false;
             this.MultiTilePicker.AutoScroll = true;
             this.MultiTilePicker.Dock = System.Windows.Forms.DockStyle.Fill;
             this.MultiTilePicker.HoverHighlighting = false;

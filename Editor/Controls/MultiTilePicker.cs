@@ -23,7 +23,7 @@ namespace TileCartographer.Controls
         /// <summary>
         /// Allows the user to select multiple tiles by clicking and dragging.
         /// </summary>
-        public bool AllowSelectionDrag { get; set; }
+        public bool MultiSelect { get; set; }
         #endregion
 
         #region Methods
@@ -149,7 +149,7 @@ namespace TileCartographer.Controls
             if (Tilemap == null) return;
 
             var prevPoint = new BytePoint2D(drgPoint.X, drgPoint.Y);
-            if (AllowSelectionDrag && isMouseDown)
+            if (MultiSelect && isMouseDown)
             {
                 SetPoint(ref drgPoint, e.X, e.Y);
                 if (prevPoint.Equals(drgPoint)) return;

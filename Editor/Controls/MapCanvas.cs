@@ -80,7 +80,7 @@ namespace TileCartographer.Controls
         public MapCanvas()
         {
             InitializeComponent();
-            layerImgs = new Image[3];
+            layerImgs = new Image[4];
             updateQueue = new Queue<KeyValuePair<int, BytePoint2D>>();
             undoQueue = new Stack<TCMap>(20);
             redoQueue = new Stack<TCMap>(20);
@@ -156,7 +156,7 @@ namespace TileCartographer.Controls
         //TODO: add neighbouring autotiles to the queue (without adding the same one more than once)
         private void SetQueue(TCMap oldMap, TCMap newMap)
         {
-            for (int x = 0; x < 3; x++)
+            for (int x = 0; x < 4; x++)
                 for (int i = 0; i < tMap.Width; i++)
                     for (int j = 0; j < tMap.Height; j++)
                     {
@@ -261,8 +261,7 @@ namespace TileCartographer.Controls
             else
                 currentLayer[loc.X, loc.Y] = Clipboard.Data[x, y];
 
-            if (LayerMode != LayerEditMode.Collision)
-                updateQueue.Enqueue(new KeyValuePair<int, BytePoint2D>((int)LayerMode, new BytePoint2D(loc.X, loc.Y)));
+            updateQueue.Enqueue(new KeyValuePair<int, BytePoint2D>((int)LayerMode, new BytePoint2D(loc.X, loc.Y)));
       
             //keep inside bounds         //check for matching tiles                      //recursive fill
             if (loc.Y - 1 >= 0)          if (currentLayer[loc.X, loc.Y - 1].Equals(old)) FloodFill(new Point(loc.X, loc.Y - 1), origin, clear);
@@ -314,8 +313,7 @@ namespace TileCartographer.Controls
             if (copy)
             {
                 Clipboard = new TileClip() { Origin = ClipOrigin.Canvas, Section = r };
-                if (LayerMode != LayerEditMode.Collision) 
-                    Clipboard.SectionImg = ((Bitmap)layerImgs[(int)LayerMode]).Clone(rScale, PixelFormat.Format32bppArgb);
+                Clipboard.SectionImg = ((Bitmap)layerImgs[(int)LayerMode]).Clone(rScale, PixelFormat.Format32bppArgb);
                 Clipboard.Data = new BytePoint2D[r.Width, r.Height];
             }
 
@@ -327,7 +325,7 @@ namespace TileCartographer.Controls
                     if (clear) currentLayer[r.X + i, r.Y + j] = new BytePoint2D(0xFF, 0);
                 }
 
-            if (clear && LayerMode != LayerEditMode.Collision)
+            if (clear)
             {
                 //redraw current layer if we are near autotiles; this
                 //ensures all existing autotiles will be updated to
@@ -346,10 +344,7 @@ namespace TileCartographer.Controls
                     g.CompositingMode = CompositingMode.SourceCopy;
                     g.FillRectangle(new SolidBrush(Color.Transparent), rScale);
                 }
-            }
-            
-            if (clear)
-            {
+
                 redoQueue.Clear();
                 if (RedoCountChanged != null) RedoCountChanged(this, redoQueue.Count);
             }
@@ -376,8 +371,6 @@ namespace TileCartographer.Controls
                     else currentLayer[dest.X + i, dest.Y + j] = Clipboard.Data[i % Clipboard.Section.Width, j % Clipboard.Section.Height];
                 }
             }
-
-            if (LayerMode == LayerEditMode.Collision) return;
 
             //check the clip for autotiles
             for(int i = 0; i < Clipboard.Section.Width; i++)
@@ -476,11 +469,40 @@ namespace TileCartographer.Controls
                     var sr = new Rectangle(p.X * tSize, p.Y * tSize, tSize, tSize);
                     var dr = new Rectangle((i - section.X) * tSize, (j - section.Y) * tSize, tSize, tSize);
 
-                    if (layer == 3)
+                    if (layer == 3) //draw collision tiles
                     {
+                        int tHalf = tSize / 2;
+
+                        var dr2 = new Rectangle(dr.X + tSize / 4, dr.Y + tSize / 4, tHalf, tHalf);
+                        var pen = new Pen(Color.Black, 1f);
+                        var b0 = new SolidBrush(Color.Green);
+                        var b1 = new SolidBrush(Color.DarkRed);
+                        var b3 = new SolidBrush(Color.White);
+                        var pts = new Point[] { 
+                            new Point(dr.X, dr.Y), new Point(dr.X + tSize, dr.Y), new Point(dr.X + tSize, dr.Y + tSize), new Point(dr.X, dr.Y + tSize),
+                            new Point(dr.X + tHalf, dr.Y + tHalf), new Point(dr.X + tHalf + 1, dr.Y + tHalf), new Point(dr.X + tHalf + 1, dr.Y + tHalf + 1), new Point(dr.X + tHalf, dr.Y + tHalf + 1) };
+
+                        g.FillRectangle(b0, dr); //default to green
+
+                        //draw collision indicators
+                        if ((p.Y & 1) == 1) g.FillPolygon(b1, new Point[] { pts[0], pts[4], pts[7], pts[3] });
+                        if ((p.Y & 2) == 2) g.FillPolygon(b1, new Point[] { pts[3], pts[7], pts[6], pts[2] });
+                        if ((p.Y & 4) == 4) g.FillPolygon(b1, new Point[] { pts[1], pts[5], pts[6], pts[2] });
+                        if ((p.Y & 8) == 8) g.FillPolygon(b1, new Point[] { pts[0], pts[1], pts[5], pts[4] });
+
+                        //draw outlines
+                        g.DrawRectangle(pen, dr);
+                        g.DrawLine(pen, pts[0], pts[2]);
+                        g.DrawLine(pen, pts[1], pts[3]);
+
+                        g.FillRectangle(b3, dr2);
+                        g.DrawRectangle(pen, dr2);
+
+                        //draw layer value
                         var ff = new FontFamily("Lucida Console");
-                        var f = new Font(ff, 10, FontStyle.Regular, GraphicsUnit.Pixel);
-                        g.DrawString(p.Y.ToString("X2"), f, new SolidBrush(Color.LawnGreen), new RectangleF(dr.X, dr.Y, tSize, tSize));
+                        var f = new Font(ff, tSize / 2, FontStyle.Regular, GraphicsUnit.Pixel);
+                        var sf = new StringFormat() { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
+                        g.DrawString((p.Y >> 4).ToString("X"), f, new SolidBrush(Color.Black), new RectangleF(dr2.X, dr2.Y+1, dr2.Width, dr2.Height), sf);
                     }
                     else
                     {
@@ -515,6 +537,8 @@ namespace TileCartographer.Controls
         {
             if (tMap == null) return;
 
+            int maxLayers = (LayerMode == LayerEditMode.Collision) ? 4 : 3;
+
             var r = new Rectangle(0, 0, tMap.Width * tSize, tMap.Height * tSize);
             
             Lower = new Bitmap(r.Width, r.Height, PixelFormat.Format32bppArgb);
@@ -526,7 +550,7 @@ namespace TileCartographer.Controls
             Upper = new Bitmap(r.Width, r.Height, PixelFormat.Format32bppArgb);
             g = Graphics.FromImage(Upper);
 
-            for (int i = (int)LayerMode + 1; i < 3; i++)
+            for (int i = (int)LayerMode + 1; i < maxLayers; i++)
                 g.DrawImage(layerImgs[i], r);
 
             g.Dispose();
@@ -546,8 +570,10 @@ namespace TileCartographer.Controls
                 g.CompositingMode = CompositingMode.SourceCopy;
                 using (var bitm = DrawLayer(tile.Key, new Rectangle(tile.Value.X, tile.Value.Y, 1, 1)))
                 {
-                    if (currentLayer[tile.Value.X, tile.Value.Y].X == 0xFF) g.FillRectangle(new SolidBrush(Color.Transparent), new Rectangle(tile.Value.X * tSize, tile.Value.Y * tSize, tSize, tSize));
-                    else g.DrawImage(bitm, new Point(tile.Value.X * tSize, tile.Value.Y * tSize));
+                    if (currentLayer[tile.Value.X, tile.Value.Y].X == 0xFF && LayerMode != LayerEditMode.Collision) 
+                        g.FillRectangle(new SolidBrush(Color.Transparent), new Rectangle(tile.Value.X * tSize, tile.Value.Y * tSize, tSize, tSize));
+                    else 
+                        g.DrawImage(bitm, new Point(tile.Value.X * tSize, tile.Value.Y * tSize));
                 }
                 g.Dispose();
                 if (tile.Key != (int)LayerMode) flag = true;
@@ -559,7 +585,7 @@ namespace TileCartographer.Controls
             if (Tilemap != null) Tilemap.Dispose();       
             Tilemap = new Bitmap(tMap.Width * tSize, tMap.Height * tSize, PixelFormat.Format32bppArgb);
 
-            bool dim = (DimLayers && !(UnDimOnExit && !isMouseOver)) || LayerMode == LayerEditMode.Collision;
+            bool dim = (DimLayers && !(UnDimOnExit && !isMouseOver));
 
             var dimMat = new ColorMatrix() { Matrix00 = 0.8f, Matrix11 = 0.8f, Matrix22 = 0.8f, Matrix33 = 0.40f };
             var ovrMat = new ColorMatrix() { Matrix33 = 0.55f };
@@ -577,25 +603,17 @@ namespace TileCartographer.Controls
 
             if ((int)LayerMode < 3) g.DrawImage(layerImgs[(int)LayerMode], dest);
             
-            if (ViewMode == LayerViewMode.AllLayers && (int)LayerMode < 2) 
+            if (ViewMode == LayerViewMode.AllLayers && (int)LayerMode < 3) 
                 g.DrawImage(Upper, dest, 0, 0, dest.Width, dest.Height, GraphicsUnit.Pixel, dim ? dimAttr : stdAttr);
+
+            if(LayerMode == LayerEditMode.Collision)
+                g.DrawImage(layerImgs[(int)LayerMode], dest, 0, 0, dest.Width, dest.Height, GraphicsUnit.Pixel, ovrAttr);
 
             g.Dispose();
             #endregion
 
             base.OnPaint(e);
             g = e.Graphics;
-
-            if ((int)LayerMode == 3)
-            {
-                for(int i = 0; i < tMap.Width; i++)
-                    for (int j = 0; j < tMap.Height; j++)
-                    {
-                        var ff = new FontFamily("Lucida Console");
-                        var f = new Font(ff, 20, FontStyle.Regular, GraphicsUnit.Pixel);
-                        g.DrawString(currentLayer[i, j].Y.ToString("X2"), f, new SolidBrush(Color.LawnGreen), new RectangleF(i * tScale, j * tScale, tScale, tScale));
-                    }
-            }
 
             var p = new Pen(Color.DarkOrange, 2);
 
@@ -637,7 +655,7 @@ namespace TileCartographer.Controls
         /// </summary>
         public void RedrawAll()
         {
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 4; i++)
                 layerImgs[i] = DrawLayer(i);
 
             DrawSandwich();

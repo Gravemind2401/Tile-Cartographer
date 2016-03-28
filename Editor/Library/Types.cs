@@ -64,7 +64,7 @@ namespace TileCartographer.Library
             set { bVal &= 0x0F; bVal |= (byte)(value << 4); }
         }
 
-        public bool Left
+        public bool Right
         {
             get { return GetBit(0); }
             set { SetBit(0, value); }
@@ -76,7 +76,7 @@ namespace TileCartographer.Library
             set { SetBit(1, value); }
         }
 
-        public bool Right
+        public bool Left
         {
             get { return GetBit(2); }
             set { SetBit(2, value); }
@@ -129,6 +129,23 @@ namespace TileCartographer.Library
         {
             if (MapName == null) return "[" + Direction.ToString() + "]";
             else return "[" + Direction.ToString() + "] " + MapName.Substring(MapName.LastIndexOf("\\") + 1);
+        }
+    }
+
+    [Serializable]
+    public struct WarpConnection
+    {
+        [Description("The name of the map to warp to.")]
+        public string MapName { get; set; }
+        [Description("The entry coordinates on the current map.")]
+        public BytePoint2D Entry { get; set; }
+        [Description("The exit coordinates on the target map.")]
+        public BytePoint2D Exit { get; set; }
+
+        public override string ToString()
+        {
+            if (MapName == null) return "[" + Exit.ToString() + "]";
+            else return "[" + Exit.ToString() + "] " + MapName.Substring(MapName.LastIndexOf("\\") + 1);
         }
     }
 

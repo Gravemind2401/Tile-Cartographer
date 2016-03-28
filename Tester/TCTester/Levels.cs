@@ -376,6 +376,22 @@ namespace TCGame
 
         public void UpdatePosition()
         {
+            #region Warp Connections
+            foreach (var w in currentMap.Warps)
+            {
+                if (playerPos.X == w.Entry.X && playerPos.Y == w.Entry.Y)
+                {
+                    var map = Project.GetMapByName(w.MapName);
+                    if (map == null) continue;
+
+                    currentPos.X = w.Exit.X - playerOffset.X;
+                    currentPos.Y = w.Exit.Y - playerOffset.Y;
+                    currentMap = map;
+                    return;
+                }
+            }
+            #endregion
+
             #region West Connection Check
             if (playerPos.X < 0)
             {

@@ -357,7 +357,7 @@ namespace TileCartographer
 
             mainProj.SaveContiguous(fname);
 
-            var proc = new Process() { StartInfo = new ProcessStartInfo(Application.StartupPath + "\\TCTester.exe", fname) };
+            var proc = new Process() { StartInfo = new ProcessStartInfo(Application.StartupPath + "\\TCTester.exe", "\"" + fname + "\"") };
             this.Enabled = false;
             proc.Start();
             proc.WaitForExit();
@@ -392,6 +392,9 @@ namespace TileCartographer
                 MapEditor.LoadMap(mainProj, map);
             else
                 MapEditor.CloseMap();
+
+            undoToolStripButton.Enabled = undoToolStripMenuItem.Enabled = false;
+            redoToolStripButton.Enabled = redoToolStripMenuItem.Enabled = false;
         }
 
         private void projectExplorer1_MapPropertyChanged(object sender, TCMap map, PropertyValueChangedEventArgs e)

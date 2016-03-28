@@ -19,6 +19,7 @@ namespace TileCartographer.Library
         public byte Width { get { return size.X; } set { size.X = value; Resize(); } }
         public byte Height { get { return size.Y; } set { size.Y = value; Resize(); } }
         public List<MapConnection> Connections { get; set; }
+        public List<WarpConnection> Warps { get; set; }
         public int TileSetIndex { get; set; }
         public string BorderMap { get; set; }
         public BytePoint2D BorderOffset { get; set; }
@@ -50,6 +51,7 @@ namespace TileCartographer.Library
 
 
             Connections = new List<MapConnection>();
+            Warps = new List<WarpConnection>();
         }
 
         //make sure to update this with any new fields
@@ -64,6 +66,7 @@ namespace TileCartographer.Library
             Flags = newMap.Flags;
             DisplayName = newMap.DisplayName;
             Connections = newMap.Connections;
+            Warps = newMap.Warps;
             TileSetIndex = newMap.TileSetIndex;
             BorderMap = newMap.BorderMap;
             BorderOffset = newMap.BorderOffset;
@@ -110,6 +113,15 @@ namespace TileCartographer.Library
                 con.Offset = br.ReadInt16();
                 map.Connections.Add(con);
             }
+            count = br.ReadInt32();
+            for (int i = 0; i < count; i++)
+            {
+                var warp = new WarpConnection();
+                warp.MapName = br.ReadString();
+                warp.Entry = new BytePoint2D(br.ReadByte(), br.ReadByte());
+                warp.Exit = new BytePoint2D(br.ReadByte(), br.ReadByte());
+                map.Warps.Add(warp);
+            }
             map.BorderMap = br.ReadString();
             map.BorderOffset = new BytePoint2D(br.ReadByte(), br.ReadByte());
             map.TileSetIndex = br.ReadInt32();
@@ -150,6 +162,15 @@ namespace TileCartographer.Library
                 br.Write((byte)Connections[i].Direction);
                 br.Write(Connections[i].MapName);
                 br.Write(Connections[i].Offset);
+            }
+            br.Write(Warps.Count);
+            for (int i = 0; i < Warps.Count; i++)
+            {
+                br.Write(Warps[i].MapName);
+                br.Write(Warps[i].Entry.X);
+                br.Write(Warps[i].Entry.Y);
+                br.Write(Warps[i].Exit.X);
+                br.Write(Warps[i].Exit.Y);
             }
             br.Write(BorderMap);
             br.Write(BorderOffset.X);
