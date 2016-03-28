@@ -20,6 +20,13 @@ namespace TileCartographer.Controls
             lblValue.Text = value.ToString("X2");
         }
 
+        public void Reset()
+        {
+            numLayer.Value = 0;
+            chkLeft.Checked = chkRight.Checked = chkUp.Checked = chkDown.Checked = false;
+            if (CollisionValueChanged != null) CollisionValueChanged(this, value);
+        }
+
         #region Event Handlers
         private void numLayer_ValueChanged(object sender, EventArgs e)
         {
@@ -53,6 +60,24 @@ namespace TileCartographer.Controls
         {
             value.Left = chkLeft.Checked;
             lblValue.Text = value.ToString("X2");
+            if (CollisionValueChanged != null) CollisionValueChanged(this, value);
+        }
+
+        private void btn0xFF_Click(object sender, EventArgs e)
+        {
+            numLayer.Value = -1;
+            chkLeft.Checked = chkRight.Checked = chkUp.Checked = chkDown.Checked = true;
+            if (CollisionValueChanged != null) CollisionValueChanged(this, value);
+        }
+
+        private void btn0x00_Click(object sender, EventArgs e)
+        {
+            Reset();
+        }
+
+        private void btn0x_0_Click(object sender, EventArgs e)
+        {
+            chkLeft.Checked = chkRight.Checked = chkUp.Checked = chkDown.Checked = false;
             if (CollisionValueChanged != null) CollisionValueChanged(this, value);
         }
         #endregion

@@ -152,7 +152,8 @@ namespace TileCartographer.Controls
         {
             //make sure the context menu options match the selected object
             var node = e.Node;
-            addFolderToolStripMenuItem.Visible = addMapToolStripMenuItem.Visible = node.Tag is TCProject || node.Tag == null;
+            addFolderToolStripMenuItem.Visible = addMapToolStripMenuItem.Visible = !(node.Tag is TCMap);
+            copyPathToolStripMenuItem.Visible = (node.Tag is TCMap);
             deleteToolStripMenuItem.Visible = !(node.Tag is TCProject);
         }
 
@@ -263,6 +264,11 @@ namespace TileCartographer.Controls
             newNode.ImageIndex = newNode.SelectedImageIndex = 2;
             tvExplorer.SelectedNode = newNode;
             newNode.BeginEdit();
+        }
+
+        private void copyPathToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Clipboard.SetText((tvExplorer.SelectedNode.Tag as TCMap).FullPath);
         }
 
         private void deleteToolStripMenuItem_Click(object sender, EventArgs e)

@@ -64,7 +64,7 @@ namespace TileCartographer.Library
             set { bVal &= 0x0F; bVal |= (byte)(value << 4); }
         }
 
-        public bool Right
+        public bool Left
         {
             get { return GetBit(0); }
             set { SetBit(0, value); }
@@ -76,7 +76,7 @@ namespace TileCartographer.Library
             set { SetBit(1, value); }
         }
 
-        public bool Left
+        public bool Right
         {
             get { return GetBit(2); }
             set { SetBit(2, value); }

@@ -58,6 +58,7 @@ namespace TileCartographer.Controls
             var img = cProj.Tilesets[cMap.TileSetIndex].GetBitmap();
 
             TilePicker.LoadTileset(cProj, img);
+            CollisionPicker.Reset();
             MultiTilePicker.LoadMultiTiles(cProj);
             MultiTilePicker.HideSelection();
             MapCanvas.LoadMap(cProj, cMap, img, TilePicker.GetClip());

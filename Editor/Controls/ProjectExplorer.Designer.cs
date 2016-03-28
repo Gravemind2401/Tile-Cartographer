@@ -32,12 +32,13 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ProjectExplorer));
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.tvExplorer = new System.Windows.Forms.TreeView();
+            this.imageList1 = new System.Windows.Forms.ImageList(this.components);
+            this.pgItemProperties = new System.Windows.Forms.PropertyGrid();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.addMapToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.imageList1 = new System.Windows.Forms.ImageList(this.components);
-            this.pgItemProperties = new System.Windows.Forms.PropertyGrid();
+            this.copyPathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -84,14 +85,35 @@
             this.tvExplorer.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.tvExplorer_NodeMouseClick);
             this.tvExplorer.NodeMouseDoubleClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.tvExplorer_NodeMouseDoubleClick);
             // 
+            // imageList1
+            // 
+            this.imageList1.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageList1.ImageStream")));
+            this.imageList1.TransparentColor = System.Drawing.Color.Transparent;
+            this.imageList1.Images.SetKeyName(0, "Icon89.ico");
+            this.imageList1.Images.SetKeyName(1, "IconC.ico");
+            this.imageList1.Images.SetKeyName(2, "IconB.ico");
+            // 
+            // pgItemProperties
+            // 
+            this.pgItemProperties.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pgItemProperties.HelpVisible = false;
+            this.pgItemProperties.Location = new System.Drawing.Point(0, 0);
+            this.pgItemProperties.Name = "pgItemProperties";
+            this.pgItemProperties.PropertySort = System.Windows.Forms.PropertySort.NoSort;
+            this.pgItemProperties.Size = new System.Drawing.Size(196, 150);
+            this.pgItemProperties.TabIndex = 1;
+            this.pgItemProperties.ToolbarVisible = false;
+            this.pgItemProperties.PropertyValueChanged += new System.Windows.Forms.PropertyValueChangedEventHandler(this.pgItemProperties_PropertyValueChanged);
+            // 
             // contextMenuStrip1
             // 
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.addMapToolStripMenuItem,
             this.addFolderToolStripMenuItem,
+            this.copyPathToolStripMenuItem,
             this.deleteToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(133, 70);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(153, 114);
             // 
             // addMapToolStripMenuItem
             // 
@@ -114,25 +136,12 @@
             this.deleteToolStripMenuItem.Text = "Delete";
             this.deleteToolStripMenuItem.Click += new System.EventHandler(this.deleteToolStripMenuItem_Click);
             // 
-            // imageList1
+            // copyPathToolStripMenuItem
             // 
-            this.imageList1.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageList1.ImageStream")));
-            this.imageList1.TransparentColor = System.Drawing.Color.Transparent;
-            this.imageList1.Images.SetKeyName(0, "Icon89.ico");
-            this.imageList1.Images.SetKeyName(1, "IconC.ico");
-            this.imageList1.Images.SetKeyName(2, "IconB.ico");
-            // 
-            // pgItemProperties
-            // 
-            this.pgItemProperties.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pgItemProperties.HelpVisible = false;
-            this.pgItemProperties.Location = new System.Drawing.Point(0, 0);
-            this.pgItemProperties.Name = "pgItemProperties";
-            this.pgItemProperties.PropertySort = System.Windows.Forms.PropertySort.NoSort;
-            this.pgItemProperties.Size = new System.Drawing.Size(196, 150);
-            this.pgItemProperties.TabIndex = 1;
-            this.pgItemProperties.ToolbarVisible = false;
-            this.pgItemProperties.PropertyValueChanged += new System.Windows.Forms.PropertyValueChangedEventHandler(this.pgItemProperties_PropertyValueChanged);
+            this.copyPathToolStripMenuItem.Name = "copyPathToolStripMenuItem";
+            this.copyPathToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.copyPathToolStripMenuItem.Text = "Copy Path";
+            this.copyPathToolStripMenuItem.Click += new System.EventHandler(this.copyPathToolStripMenuItem_Click);
             // 
             // ProjectExplorer
             // 
@@ -160,5 +169,6 @@
         private System.Windows.Forms.ToolStripMenuItem addMapToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem;
         private System.Windows.Forms.ImageList imageList1;
+        private System.Windows.Forms.ToolStripMenuItem copyPathToolStripMenuItem;
     }
 }

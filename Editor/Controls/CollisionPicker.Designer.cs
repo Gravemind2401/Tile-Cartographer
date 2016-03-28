@@ -36,6 +36,9 @@
             this.numLayer = new System.Windows.Forms.NumericUpDown();
             this.lblValue = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
+            this.btn0x00 = new System.Windows.Forms.Button();
+            this.btn0xFF = new System.Windows.Forms.Button();
+            this.btn0x_0 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.numLayer)).BeginInit();
             this.SuspendLayout();
             // 
@@ -119,16 +122,55 @@
             // 
             // label1
             // 
-            this.label1.Location = new System.Drawing.Point(4, 213);
+            this.label1.Location = new System.Drawing.Point(4, 245);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(217, 265);
+            this.label1.Size = new System.Drawing.Size(217, 266);
             this.label1.TabIndex = 6;
             this.label1.Text = resources.GetString("label1.Text");
+            // 
+            // btn0x00
+            // 
+            this.btn0x00.AutoSize = true;
+            this.btn0x00.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btn0x00.Location = new System.Drawing.Point(98, 206);
+            this.btn0x00.Name = "btn0x00";
+            this.btn0x00.Size = new System.Drawing.Size(29, 23);
+            this.btn0x00.TabIndex = 7;
+            this.btn0x00.Text = "00";
+            this.btn0x00.UseVisualStyleBackColor = true;
+            this.btn0x00.Click += new System.EventHandler(this.btn0x00_Click);
+            // 
+            // btn0xFF
+            // 
+            this.btn0xFF.AutoSize = true;
+            this.btn0xFF.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btn0xFF.Location = new System.Drawing.Point(63, 206);
+            this.btn0xFF.Name = "btn0xFF";
+            this.btn0xFF.Size = new System.Drawing.Size(29, 23);
+            this.btn0xFF.TabIndex = 8;
+            this.btn0xFF.Text = "FF";
+            this.btn0xFF.UseVisualStyleBackColor = true;
+            this.btn0xFF.Click += new System.EventHandler(this.btn0xFF_Click);
+            // 
+            // btn0x_0
+            // 
+            this.btn0x_0.AutoSize = true;
+            this.btn0x_0.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btn0x_0.Location = new System.Drawing.Point(133, 206);
+            this.btn0x_0.Name = "btn0x_0";
+            this.btn0x_0.Size = new System.Drawing.Size(29, 23);
+            this.btn0x_0.TabIndex = 9;
+            this.btn0x_0.Text = "?0";
+            this.btn0x_0.UseVisualStyleBackColor = true;
+            this.btn0x_0.Click += new System.EventHandler(this.btn0x_0_Click);
             // 
             // CollisionPicker
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.btn0x_0);
+            this.Controls.Add(this.btn0xFF);
+            this.Controls.Add(this.btn0x00);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.lblValue);
             this.Controls.Add(this.numLayer);
@@ -153,5 +195,8 @@
         private System.Windows.Forms.NumericUpDown numLayer;
         private System.Windows.Forms.Label lblValue;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Button btn0x00;
+        private System.Windows.Forms.Button btn0xFF;
+        private System.Windows.Forms.Button btn0x_0;
     }
 }

@@ -364,8 +364,8 @@ namespace TCGame
         {
             if (dir.Y < 0 && c1.Down ||
                 dir.Y > 0 && c1.Up ||
-                dir.X < 0 && c1.Left ||
-                dir.X > 0 && c1.Right)
+                dir.X < 0 && c1.Right ||
+                dir.X > 0 && c1.Left)
                 return false;
 
             if (c0.Layer != c1.Layer && c0.Layer != -1 && c1.Layer != -1)
