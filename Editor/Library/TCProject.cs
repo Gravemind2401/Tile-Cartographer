@@ -12,6 +12,9 @@ namespace TileCartographer.Library
 {
     public class TCProject
     {
+        private const float VER = 1.0f; //current save format version
+
+        private float version; //version this file was saved in
         private string fName;
         public string FilePath { get { return fName; } }
 
@@ -53,6 +56,7 @@ namespace TileCartographer.Library
             var br = new BinaryReader(new FileStream(Filename, FileMode.Open, FileAccess.Read));
 
             proj.fName = Filename;
+            proj.version = br.ReadSingle();
             proj.Flags = (ProjectFlags)br.ReadByte();
             proj.Title = br.ReadString();
 
@@ -89,6 +93,7 @@ namespace TileCartographer.Library
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
             var br = new BinaryWriter(new FileStream(Filename, FileMode.Create, FileAccess.Write));
 
+            br.Write(VER); //always save as newest format
             br.Write((byte)Flags);
             br.Write(Title);
 
@@ -166,6 +171,7 @@ namespace TileCartographer.Library
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
             var br = new BinaryWriter(new FileStream(Filename, FileMode.Create, FileAccess.Write));
 
+            br.Write(VER);
             br.Write((byte)Flags);
             br.Write(Title);
 
@@ -218,7 +224,8 @@ namespace TileCartographer.Library
             var proj = new TCProject();
             var dir = Directory.GetParent(Filename);
             var br = new BinaryReader(new FileStream(Filename, FileMode.Open, FileAccess.Read));
-
+            
+            proj.version = br.ReadSingle();
             proj.Flags = (ProjectFlags)br.ReadByte();
             proj.Title = br.ReadString();
 

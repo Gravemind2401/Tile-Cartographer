@@ -11,6 +11,9 @@ namespace TileCartographer.Library
     [Serializable]
     public class TCMap
     {
+        private const float VER = 1.0f; //current save format version
+
+        private float version; //version this file was saved in
         private BytePoint2D size;
 
         #region Viewable Properties
@@ -98,6 +101,7 @@ namespace TileCartographer.Library
         public static TCMap FromStream(BinaryReader br)
         {
             var map = new TCMap(1, 1);
+            map.version = br.ReadSingle();
             map.Flags = (MapFlags)br.ReadByte();
             map.InternalPath = br.ReadString();
             map.InternalName = br.ReadString();
@@ -150,6 +154,7 @@ namespace TileCartographer.Library
 
         public void Save(BinaryWriter br)
         {
+            br.Write(VER); //always save as newest format
             br.Write((byte)Flags);
             br.Write(InternalPath);
             br.Write(InternalName);
